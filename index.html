@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Metadata Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: #0a0a0a;
+            color: #c0c0c0;
+            min-height: 100vh;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 4px;
+            padding: 40px;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 40px;
+            color: #e0e0e0;
+            font-weight: normal;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .step {
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .step:first-of-type {
+            display: block;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 2px;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #555;
+        }
+
+        button {
+            background: #1a1a1a;
+            color: #aaa;
+            border: 1px solid #333;
+            padding: 10px 20px;
+            border-radius: 2px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: #222;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+
+        .file-input-group {
+            padding: 20px 0;
+            border-bottom: 1px solid #222;
+            margin-bottom: 20px;
+        }
+
+        .file-input-group:last-child {
+            border-bottom: none;
+        }
+
+        .file-input-group h3 {
+            font-size: 1em;
+            margin-bottom: 15px;
+            color: #777;
+            font-weight: normal;
+            font-family: 'Courier New', monospace;
+        }
+
+        .output-section {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 1px solid #222;
+            display: none;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .copy-btn {
+            width: auto;
+            padding: 6px 16px;
+            font-size: 0.8em;
+        }
+
+        pre {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 2px;
+            padding: 20px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            line-height: 1.5;
+            color: #888;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .error {
+            color: #d44;
+            font-size: 0.8em;
+            margin-top: 5px;
+            display: none;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>File Metadata Generator</h1>
+        
+        <div class="step" id="step1">
+            <label for="fileCount">How many files?</label>
+            <input type="number" id="fileCount" min="1" max="50" placeholder="Enter number">
+            <span class="error" id="fileCountError">Enter a valid number (1-50)</span>
+            <button onclick="setupForms()">Continue</button>
+        </div>
+
+        <div id="formsContainer"></div>
+
+        <div id="outputSection" class="output-section">
+            <div class="output-header">
+                <h2 style="font-size: 1em; color: #777; font-weight: normal; text-transform: uppercase; letter-spacing: 1px;">Generated Output</h2>
+                <button class="copy-btn" id="copyBtn" onclick="copyOutput()">Copy</button>
+            </div>
+            <pre id="outputDisplay"></pre>
+        </div>
+    </div>
+
+    <script>
+        let fileData = [];
+
+        function setupForms() {
+            const fileCount = parseInt(document.getElementById('fileCount').value);
+            const error = document.getElementById('fileCountError');
+            
+            if (isNaN(fileCount) || fileCount < 1 || fileCount > 50) {
+                error.style.display = 'block';
+                return;
+            }
+            
+            error.style.display = 'none';
+            const container = document.getElementById('formsContainer');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < fileCount; i++) {
+                const group = document.createElement('div');
+                group.className = 'file-input-group';
+                group.innerHTML = `
+                    <h3>File ${i + 1}</h3>
+                    <label for="title${i}">Title</label>
+                    <input type="text" id="title${i}" placeholder="Map">
+                    <span class="error" id="titleError${i}">Required</span>
+                    
+                    <label for="filename${i}">Filename with extension</label>
+                    <input type="text" id="filename${i}" placeholder="map.pdf">
+                    <span class="error" id="filenameError${i}">Required</span>
+                `;
+                container.appendChild(group);
+            }
+            
+            const btn = document.createElement('button');
+            btn.textContent = 'Generate';
+            btn.onclick = generateOutput;
+            container.appendChild(btn);
+            
+            document.getElementById('step1').style.display = 'none';
+        }
+
+        function generateOutput() {
+            const fileCount = parseInt(document.getElementById('fileCount').value);
+            fileData = [];
+            let hasErrors = false;
+            
+            document.querySelectorAll('.error').forEach(e => e.style.display = 'none');
+            
+            for (let i = 0; i < fileCount; i++) {
+                const title = document.getElementById(`title${i}`).value.trim();
+                const filename = document.getElementById(`filename${i}`).value.trim();
+                
+                if (!title) {
+                    document.getElementById(`titleError${i}`).style.display = 'block';
+                    hasErrors = true;
+                }
+                if (!filename) {
+                    document.getElementById(`filenameError${i}`).style.display = 'block';
+                    hasErrors = true;
+                }
+                if (!title || !filename) continue;
+                
+                const ext = filename.split('.').pop().toLowerCase();
+                fileData.push({filename, title, type: ext});
+            }
+            
+            if (hasErrors) return;
+            
+            const output = fileData.length === 1 
+                ? JSON.stringify(fileData[0], null, 2)
+                : fileData.map(item => JSON.stringify(item, null, 2)).join(',\n');
+            
+            document.getElementById('outputDisplay').textContent = output;
+            document.getElementById('outputSection').style.display = 'block';
+            document.getElementById('copyBtn').textContent = 'Copy';
+        }
+
+        function copyOutput() {
+            const text = document.getElementById('outputDisplay').textContent;
+            const btn = document.getElementById('copyBtn');
+            
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = 'Copied';
+                setTimeout(() => btn.textContent = 'Copy', 2000);
+            });
+        }
+
+        document.getElementById('fileCount').addEventListener('keypress', e => {
+            if (e.key === 'Enter') setupForms();
+        });
+    </script>
+</body>
+</html>
